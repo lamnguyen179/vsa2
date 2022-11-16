@@ -1,0 +1,510 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Aggregate {% endblock %}
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini {% endblock body_class %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="/static/assets/css/gg_font.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+    <!-- DataTables & Plugins-->
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-select/css/select.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-colreorder/css/colReorder.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/toastr/toastr.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <!-- /.card-header -->
+                            <div class="card-header">
+                                <h2>Aggregate</h2>
+                            </div>
+                            <!-- /.card-body -->
+                            <div class="card-body">
+                                <table id="aggregate_table" class="table table-bordered table-striped order-column" style="width:100%">
+                                    <button data-toggle="modal" data-target="#create_new_modal" type="button" class="btn data-table-action btn-default ajax-modal btn-create ajax-update">
+                                        <i class="fa fa-plus"></i> Create Aggregate
+                                    </button>
+                                    <div class="modal fade" id="create_new_modal">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h3 class="modal-title">Create New Aggregate</h3>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                </div>
+                                                <form action="/add-aggregate" method="post">
+                                                    <div class="modal-body">
+                                                        <fieldset>
+                                                            <div class="form-group required">
+                                                                <label class="control-label" for="id_name">
+                                                                  <span class="field-label">Aggregate Name</span>
+                                                                </label>
+                                                                <span class="hz-icon-required fa fa-asterisk"></span>
+                                                                <input type="text" name="aggregate_name" id="id_name" class="form-control" maxlength="255" required>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="control-label">
+                                                                    <span class="field-label">Hosts (Optional)</span>
+                                                                </label>
+                                                                <textarea class="form-control" name="hosts" rows="5"></textarea>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="control-label">
+                                                                    <span class="field-label">Storages (Optional)</span>
+                                                                </label>
+                                                                <textarea class="form-control" name="storages" rows="2"></textarea>
+                                                            </div>
+                                                        </fieldset>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                        <button class="btn btn-primary" type="submit">Create Aggregate</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Name</th>
+                                            <th>Hosts</th>
+                                            <th>Storages</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for agg in aggregates %}
+                                            <tr id="aggregate_row_{{ agg.id }}" value='{{ agg|tojson }}'>
+                                                <td></td>
+                                                <td>{{ agg.name }}</td>
+                                                <td>
+                                                    <ul>
+                                                        {% for sv in agg.server_list %}
+                                                            {% if sv.zoned %}
+                                                                <li style="color:green;">
+                                                                    {{ sv.hostname }}
+                                                                </li>
+                                                            {% else %}
+                                                                <li style="color:red;">
+                                                                    {{ sv.hostname }}
+                                                                </li>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </td>
+                                                <td>
+                                                    <ul>
+                                                        {% for st in agg.storage_list %}
+                                                            <li>
+                                                                {{ st }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" id="btg_{{ agg.id }}">
+                                                        <button data-id='{{ agg.id }}' data-toggle="modal" type="button" class="data-table-action btn-sm btn btn-default" data-target="#edit_aggregate_modal">Edit Aggregate</button>
+                                                        <button type="button" class="data-table-action btn-sm btn btn-default dropdown-toggle dropdown-toggle-split" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">
+                                                            <span class="sr-only">Toggle Dropdown</span>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-right row_actions" id="dropdown_menu">
+                                                            <button id="bt_add_host_{{ agg.id }}" data-id='{{ agg.id }}' data-toggle="modal" data-target="#add_host_modal" type="button" class="dropdown-item btn-sm btn">Add Host(s)</button>
+                                                            <button id="bt_delete_host_{{ agg.id }}" data-id='{{ agg.id }}' data-toggle="modal" data-target="#delete_host_modal" type="button" class="dropdown-item btn-sm btn">Delete Host</button>
+                                                            <button id="bt_add_storage_{{ agg.id }}" data-id='{{ agg.id }}' data-toggle="modal" data-target="#add_storage_modal" type="button" class="dropdown-item btn-sm btn">Add Storage(s)</button>
+                                                            <button id="bt_edit_storage_{{ agg.id }}" data-id='{{ agg.id }}' data-toggle="modal" data-target="#edit_storage_modal" type="button" class="dropdown-item btn-sm btn">Edit Storage</button>
+                                                            <button id="bt_delete_storage_{{ agg.id }}" data-id='{{ agg.id }}' data-toggle="modal" data-target="#delete_storage_modal" type="button" class="dropdown-item btn-sm btn">Delete Storage</button>
+                                                            <button id="bt_delete_{{ agg.id }}" data-id='{{ agg.id }}' data-toggle="modal" data-target="#delete_aggregate_modal" type="button" class="dropdown-item btn-sm btn-danger btn" style="color:red;">Delete Aggregate</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="edit_aggregate_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Edit Aggregate Name</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/edit-aggregate" method="post">
+                                                                    <div class="modal-body">
+                                                                        <input type="hidden" name="edit_aggregate_id" id="edit_aggregate_id">
+                                                                        <fieldset>
+                                                                            <div class="form-group">
+                                                                                <label class="control-label required">
+                                                                                    <span class="field-label">New aggregate name</span>
+                                                                                </label>
+                                                                                <input type="text" name="new_aggregate_name" class="form-control" maxlength="255" id="edit_aggregate_name">
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-primary" type="submit">Edit</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="add_host_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Add Host(s)</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/add-server-to-aggregate" method="post">
+                                                                    <div class="modal-body">
+                                                                        <input type="hidden" name="server_aggregate_id" id="add_server_aggregate_id">
+                                                                        <fieldset>
+                                                                            <div class="form-group required">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Host(s) IP</span>
+                                                                                </label>
+                                                                                <textarea class="form-control" name="servers" rows="5" placeholder="10.10.10.10
+10.20.20.20"></textarea>
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-primary" type="submit">Add</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="delete_host_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Delete Host</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/delete-host" method="post">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <div class="from-group">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Select host</span>
+                                                                                </label>
+                                                                                <select class="duallistbox" name="delete_host" id="delete_host_select" multiple="multiple"></select>
+                                                                            </div>
+                                                                        </fieldset>
+                                                                        <br>
+                                                                        <p id="delete_host_ip"></p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-danger" type="submit">Delete</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="add_storage_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Add Storage(s)</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/add-storage-to-aggregate" method="post">
+                                                                    <div class="modal-body">
+                                                                        <input type="hidden" name="storage_aggregate_id" id="add_storage_aggregate_id">
+                                                                        <fieldset>
+                                                                            <div class="form-group required">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Storage(s)</span>
+                                                                                </label>
+                                                                                <textarea class="form-control" name="storages" rows="3" placeholder="Volume type 1
+Volume type 2"></textarea>
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-primary" type="submit">Add</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="edit_storage_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Edit Storage</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/edit-storage" method="post">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <div class="from-group">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Select storage</span>
+                                                                                </label>
+                                                                                <select class="custom-select" name= "edit_storage" id="edit_storage_select"></select>
+                                                                            </div>
+                                                                            <div class="form-group required">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">New storage name</span>
+                                                                                </label>
+                                                                                <input type="text" name="new_storage_name" class="form-control" maxlength="255" id="edit_storage_name">
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-danger" type="submit">Edit</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="delete_storage_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Delete Storage</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/delete-storage" method="post">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <div class="from-group">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Select storage</span>
+                                                                                </label>
+                                                                                <select class="custom-select" name= "delete_storage" id="delete_storage_select"></select>
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-danger" type="submit">Delete</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="delete_aggregate_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content ui-draggable">
+                                                                <div class="modal-header ui-draggable-handle">
+                                                                    <h4 class="modal-title">Confirm Delete</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div id= "delete_aggregate_modal_body" class="modal-body"></div>
+                                                                <div class="modal-footer">
+                                                                    <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                    <form action="/delete-aggregate" method="post">
+                                                                        <input id="delete_aggregate_id" type="hidden" name="delete_aggregate_id">
+                                                                        <button class="btn btn-danger" type="submit">Delete Aggregate</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        <!-- /.card -->
+                        </div>
+                    <!-- /.col -->
+                    </div>
+                <!-- /.row -->
+                </div>
+            <!-- /.container-fluid -->
+            </div>
+            <!-- /.content -->
+            </section>
+    <!-- /.content-wrapper -->
+    </div>
+{% endblock content %}
+
+{% block javascripts %}
+    <!-- jQuery -->
+    <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables & Plugins -->
+    <script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/jszip/jszip.min.js"></script>
+    <script src="/static/assets/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="/static/assets/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="/static/assets/plugins/datatables-select/js/dataTables.select.min.js"></script>
+    <script src="/static/assets/plugins/datatables-select/js/select.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-colreorder/js/colReorder.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-colreorder/js/dataTables.colReorder.min.js"></script>
+    <script src="/static/assets/plugins/toastr/toastr.min.js"></script>
+    <script src="/static/assets/plugins/select2/js/select2.min.js"></script>
+    <script src="/static/assets/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/static/assets/js/adminlte.min.js"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="/static/assets/js/demo.js"></script>
+    <!-- Page specific script -->
+    <script>
+        $(function () {
+            
+            var currentURL = window.location;
+            $('a[href="'+ currentURL.pathname +'"]').attr('class', 'nav-link active');
+            var table = $('#aggregate_table').DataTable({
+                "responsive": true,
+                "paging": false,
+                "lengthChange": false,
+                "autoWidth": false,
+                "colReorder": false,
+                "buttons": ["excel", "colvis"],
+                "select": {"style": "multi", "selector": "td:first-child"},
+                "columnDefs": [{"orderable": true, "className": "select-checkbox", "targets": 0}],
+            });
+            table.button().container().appendTo('#aggregate_table_wrapper .col-md-6:eq(0)');
+            function update_button(aggregate) {
+                let aggregateID = aggregate.id;
+                let hosts = aggregate.server_list;
+                let storages = aggregate.storage_list;
+                if (hosts && !hosts.length) {
+                    $('#bt_delete_host_' + aggregateID).attr("disabled", "disabled");
+                } else {
+                    $('#bt_delete_host_' + aggregateID).removeAttr("disabled");
+                };
+                if (storages && !storages.length) {
+                    $('#bt_delete_storage_' + aggregateID).attr("disabled", "disabled");
+                    $('#bt_edit_storage_' + aggregateID).attr("disabled", "disabled");
+                } else {
+                    $('#bt_delete_storage_' + aggregateID).removeAttr("disabled");
+                    $('#bt_edit_storage_' + aggregateID).removeAttr("disabled");
+                };
+            }
+            $('tr[id^="aggregate_row_"]').each(function() {
+                let aggregate = JSON.parse($(this).attr("value"));
+                update_button(aggregate);
+            });
+            table.on("show.bs.modal", '#edit_aggregate_modal', function(e){
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                let aggregate = JSON.parse($('#aggregate_row_' + aggregateID).attr('value'));
+                let aggregateName = aggregate.name;
+                $('#edit_aggregate_id').val(aggregateID);
+                $('#edit_aggregate_name').val(aggregateName);
+            });
+            table.on("show.bs.modal", '#add_host_modal', function(e){
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                $('#add_server_aggregate_id').val(aggregateID);
+            });
+            table.on("show.bs.modal", '#delete_host_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                let aggregate = JSON.parse($('#aggregate_row_' + aggregateID).attr('value'));
+                let hosts = aggregate.server_list;
+                for (host in hosts) {
+                    console.log(hosts[host])
+                    $('#delete_host_select').append($('<option>', {
+                        value: hosts[host].ip,
+                        text: hosts[host].hostname + ' (' + hosts[host].ip + ')',
+                    }));
+                };
+                $('#delete_host_select').bootstrapDualListbox({
+                });
+            });
+            table.on("hide.bs.modal", '#delete_host_modal', function() {
+                $("#delete_host_select").html("");
+            });
+            table.on("show.bs.modal", '#add_storage_modal', function(e){
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                let aggregate = JSON.parse($('#aggregate_row_' + aggregateID).attr('value'));
+                $('#add_storage_aggregate_id').val(aggregateID);
+            });
+            table.on("show.bs.modal", '#edit_storage_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                let aggregate = JSON.parse($('#aggregate_row_' + aggregateID).attr('value'));
+                let storages = aggregate.storage_list;
+                for (st in storages) {
+                    $('#edit_storage_select').append($('<option>', {
+                        value: storages[st],
+                        text: storages[st],
+                    }));
+                };
+                $('#edit_storage_select').change(function() {
+                    var selected = $(this).find(':selected');
+                    $('#edit_storage_name').val(selected.val())
+                }).trigger('change');
+            });
+            table.on("hide.bs.modal", '#edit_storage_modal', function() {
+                $("#edit_storage_select").html("");
+            });
+            table.on("show.bs.modal", '#delete_storage_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                let aggregate = JSON.parse($('#aggregate_row_' + aggregateID).attr('value'));
+                let storages = aggregate.storage_list;
+                for (st in storages) {
+                    $('#delete_storage_select').append($('<option>', {
+                        value: storages[st],
+                        text: storages[st],
+                    }));
+                };
+            });
+            table.on("hide.bs.modal", '#delete_storage_modal', function() {
+                $("#delete_storage_select").html("");
+            });
+            table.on("show.bs.modal", '#delete_aggregate_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let aggregateID = button.data("id");
+                let aggregate = JSON.parse($('#aggregate_row_' + aggregateID).attr('value'));
+                let aggregateName = aggregate.name;
+                $('#delete_aggregate_modal_body').html("<a>Deleting aggregate <b>" + aggregateName + "</b>. Delete aggregate will delete <b>all hosts and all storages</b> of the aggregate. Please confirm your selection. Deleted aggregates are not recoverable.");
+                $('#delete_aggregate_id').val(aggregateID);
+            });
+        })
+    </script>
+{% endblock javascripts %}

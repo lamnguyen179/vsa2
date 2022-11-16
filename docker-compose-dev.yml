@@ -1,0 +1,14 @@
+version: "3.3"
+
+services:
+  postgres:
+    image: 'postgres:13'
+    network_mode: host
+    environment:
+      - POSTGRES_PASSWORD=Money
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d/
+volumes:
+  pgdata:

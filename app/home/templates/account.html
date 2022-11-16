@@ -1,0 +1,387 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} {% endblock %}
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} {% endblock body_class %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+
+    <link rel="stylesheet" href="/static/assets/plugins/toastr/toastr.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1>Manage Account</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="#">Home</a></li>
+                            <li class="breadcrumb-item active">Account</li>
+                        </ol>
+                    </div>
+                </div>
+            </div><!-- /.container-fluid -->
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Account</h3>
+                                <button type="button" class="btn btn-default float-right" id="add-acc"
+                                        data-toggle="modal" data-target="#modal-add-acc">
+                                    Thêm Account
+                                </button>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <table id="acc_table-aaa" class="table table-bordered table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>API Key</th>
+                                        <th>Secret Key</th>
+                                        <th>Action</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for a in accounts %}
+                                        <tr>
+                                            <td>{{ a.name }}</td>
+                                            <td>{{ a.api_key|truncate(9) }}</td>
+                                            <td>{{ a.secret_key|truncate(9) }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-xs btn-info btn-edit-acc"
+                                                        data-toggle="modal" data-target="#modal-edit-acc"
+                                                        data-name="{{ a.name }}"
+                                                        data-api_key="{{ a.api_key }}"
+                                                        data-secret_key="{{ a.secret_key }}">
+                                                    <i class="fa fa-edit"></i>
+                                                    Edit
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-danger btn-delete-acc"
+                                                        data-toggle="modal" data-target="#modal-delete-acc"
+                                                        data-name="{{ a.name }}"
+                                                        data-api_key="{{ a.api_key }}"
+                                                        data-secret_key="{{ a.secret_key }}">
+                                                    <i class="fa fa-trash"></i>
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+
+                    </div>
+                    <!-- /.col -->
+                </div>
+
+            </div><!-- /.container-fluid -->
+        </section>
+        <!-- /.content -->
+
+        <a id="back-to-top" href="#" class="btn btn-primary back-to-top" role="button" aria-label="Scroll to top">
+            <i class="fas fa-chevron-up"></i>
+        </a>
+    </div>
+    <!-- /.content-wrapper -->
+
+    <div class="modal fade" id="modal-add-acc">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Thêm Account</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <form>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="accname_add">Name</label>
+                                <input class="form-control" id="accname_add" placeholder="acc_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="accapikey_add">API key</label>
+                                <input class="form-control" id="accapikey_add" placeholder="API Key">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="accsecretkey_add">Secret key</label>
+                                <input class="form-control" id="accsecretkey_add" placeholder="Secret key">
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+                    </form>
+
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" id="submit-add-acc" class="btn btn-primary">Submit</button>
+
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <div class="modal fade" id="modal-edit-acc">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Edit Account</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="accname_edit">Name</label>
+                                <input class="form-control" id="accname_edit" placeholder="acc_name" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="accapikey_edit">API key</label>
+                                <input class="form-control" id="accapikey_edit" placeholder="number_follow">
+                            </div>
+                            <div class="form-group">
+                                <label for="accsecretkey_edit">Secret key</label>
+                                <input class="form-control" id="accsecretkey_edit" placeholder="Follow">
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button class="btn btn-primary float-right" id="btn_submit_edit_acc">Submit</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+    <div class="modal fade" id="modal-delete-acc">
+        <div class="modal-dialog">
+            <div class="modal-content bg-danger">
+                <div class="modal-header">
+                    <h4 class="modal-title">Delete Account</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h3>Ban thuc su muon xoa acc:
+                        <span id="acc_info_delete">acc_name</span>
+                    </h3>
+
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button class="btn btn-primary float-right" id="btn_submit_delete_acc">Submit</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+    <!-- jQuery -->
+    <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables -->
+    <script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="/static/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <!-- bs-custom-file-input -->
+    <script src="/static/assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
+
+    <!-- Toastr -->
+    <script src="/static/assets/plugins/toastr/toastr.min.js"></script>
+
+    <!-- AdminLTE App -->
+    <script src="/static/assets/js/adminlte.min.js"></script>
+    <!-- page script -->
+    <script>
+        $(function () {
+
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+
+            bsCustomFileInput.init();
+
+            let table_acc = $("#acc_table-aaa").DataTable({
+                "responsive": {
+                    "details": {
+                        "renderer": $.fn.dataTable.Responsive.renderer.listHiddenNodes()
+                    }
+                },
+                "autoWidth": false,
+                "pageLength": 25,
+                "drawCallback": function (settings) {
+                    let acc_name;
+                    let acc_link;
+                    let acc_acc_name;
+                    let row_acc_obj;
+                    let row_acc_data;
+
+                    $('#submit-add-acc').off("click").click(function () {
+                        let acc_add = {
+                            acc_name: $('#accname_add').val(),
+                            acc_api_key: $('#accapikey_add').val(),
+                            acc_secret_key: $('#accsecretkey_add').val(),
+                        };
+                        $('#modal-add-acc').modal('toggle');
+                        $.ajax({
+                            type: "post",
+                            url: '/add-acc',
+                            data: acc_add,
+                            success: function (data, text) {
+                                if (data.status === SUCCESS) {
+                                    toastr.success(data.msg)
+                                } else {
+                                    toastr.error(data.msg)
+                                }
+
+                            },
+                            error: function (request, status, error) {
+                                console.log(request);
+                                console.log(error);
+                            }
+                        });
+                    });
+
+                    $('.btn-edit-acc').click(function () {
+                        let acc_edit = $(this).data();
+                        $('#accname_edit').val(acc_edit['name']);
+                        $('#accapikey_edit').val(acc_edit['api_key']);
+                        $('#accsecretkey_edit').val(acc_edit['secret_key']);
+                        acc_name = acc_edit['name'];
+
+                        row_acc_obj = table_acc.row($(this).parents('tr'));
+                        row_acc_data = row_acc_obj.data();
+                    });
+
+                    $('#btn_submit_edit_acc').off("click").click(function () {
+                        let accname_edit = $('#accname_edit').val();
+                        let accapikey_edit = $('#accapikey_edit').val();
+                        let accsecretkey_edit = $('#accsecretkey_edit').val();
+                        let acc_edit = {
+                            acc_name: accname_edit,
+                            acc_api_key: accapikey_edit,
+                            acc_secret_key: accsecretkey_edit,
+                        };
+                        $('#modal-edit-acc').modal('toggle');
+                        $.ajax({
+                            type: "put",
+                            url: '/edit-acc',
+                            data: acc_edit,
+                            success: function (data, text) {
+                                if (data.status === SUCCESS) {
+                                    row_acc_data[0] = accname_edit
+                                    row_acc_data[1] = accapikey_edit.substring(0,6) + "...";
+                                    row_acc_data[2] = accsecretkey_edit.substring(0,6) + "...";
+                                    row_acc_obj.data(row_acc_data);
+                                    toastr.success(data.msg)
+                                } else {
+                                    toastr.error(data.msg)
+                                }
+
+                            },
+                            error: function (request, status, error) {
+                                console.log(request);
+                                console.log(error);
+                            }
+                        });
+                    });
+
+                    $('.btn-delete-acc').click(function () {
+                        let acc_delete = $(this).data();
+                        acc_name = acc_delete['name'];
+
+                        $('#acc_info_delete').text(acc_name);
+
+                        row_acc_obj = table_acc.row($(this).parents('tr'));
+                    });
+
+                    $('#btn_submit_delete_acc').off("click").click(function () {
+                        let acc = {
+                            "acc_name": acc_name,
+                        };
+                        $('#modal-delete-acc').modal('toggle');
+                        $.ajax({
+                            type: "delete",
+                            url: '/delete-acc',
+                            data: acc,
+                            success: function (data, text) {
+                                if (data.status === SUCCESS) {
+                                    row_acc_obj.remove().draw(false);
+                                    toastr.success(data.msg)
+                                } else {
+                                    toastr.error(data.msg)
+                                }
+                            },
+                            error: function (request, status, error) {
+                                console.log(request);
+                                console.log(error);
+                            }
+                        });
+                    });
+                }
+            });
+
+        });
+    </script>
+
+{% endblock javascripts %}

@@ -1,0 +1,12 @@
+[Unit]
+Description=VSA2 - VStorage Administration & Automation
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/git/vsa2
+Environment="PATH=/root/git/vsa2/env/bin"
+ExecStart=/root/git/vsa2/env/bin/gunicorn run:app --log-file=- -c gunicorn-cfg.py
+
+[Install]
+WantedBy=multi-user.target

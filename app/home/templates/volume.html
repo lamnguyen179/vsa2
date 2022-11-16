@@ -1,0 +1,689 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Volume {% endblock %}
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini {% endblock body_class %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="/static/assets/css/gg_font.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+    <!-- DataTables & Plugins-->
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-select/css/select.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/datatables-colreorder/css/colReorder.bootstrap4.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/toastr/toastr.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
+    <link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <!-- /.card-header -->
+                            <div class="card-header">
+                                <h2>Volume</h2>
+                            </div>
+                            <!-- /.card-body -->
+                            <div class="card-body">
+                                <table id="volume_table" class="table table-bordered table-striped order-column" style="width:100%">
+                                    <button data-toggle="modal" data-target="#create_new_modal" type="button" class="btn data-table-action btn-default ajax-modal btn-create ajax-update">
+                                        <i class="fa fa-plus"></i> Create New Volume
+                                    </button>
+                                    <div class="modal fade" id="create_new_modal">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h3 class="modal-title">Create Volume</h3>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                </div>
+                                                <form action="/create-volume" method="post">
+                                                    <div class="modal-body">
+                                                        <fieldset>
+                                                            <div class="form-group">
+                                                                <label class="control-label" for="id_name">
+                                                                  <span class="field-label">Volume Name</span>
+                                                                </label>
+                                                                <input type="text" name="volume_name" id="id_name" class="form-control" maxlength="255">
+                                                            </div>
+                                                            <div class="form-group required">
+                                                                <label class="control-label" for="id_size">
+                                                                    <span class="field-label">Size (GiB)</span>
+                                                                </label>
+                                                                <span class="hz-icon-required fa fa-asterisk"></span>
+                                                                <div class="input-group themable-spinner spinner-initialized">
+                                                                    <input type="number" name="volume_size" value="1" autocomplete="off" id="id_size" required class="form-control" min="1">
+                                                                </div>
+                                                            </div>
+                                                            <div class="from-group">
+                                                                <label class="control-label">
+                                                                    <span class="field-label">Type</span>
+                                                                </label>
+                                                                <select class="form-control select2" name="volume_type">
+                                                                    {% for t in volume_types %}
+                                                                        <option>{{ t.name }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </fieldset>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                        <button class="btn btn-primary" type="submit">Create Volume</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button data-toggle="modal" data-target="#create_with_atm_modal" type="button" class="btn ajax-modal btn-success ajax-update">
+                                        <i class="fa fa-plus"></i> Create Volume With Attachment
+                                    </button>
+                                    <div class="modal fade" id="create_with_atm_modal">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h3 class="modal-title">Create Volume With Attachment</h3>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                </div>
+                                                <form action="/create-volume-with-attachment" method="post">
+                                                    <div class="modal-body">
+                                                        <fieldset>
+                                                            <div class="from-group">
+                                                                <label class="control-label">
+                                                                    <span class="field-label">Type</span>
+                                                                </label>
+                                                                <select class="form-control select2" name="volume_type">
+                                                                    {% for t in volume_types %}
+                                                                        <option>{{ t.name }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group required">
+                                                                <label class="control-label" for="id_size">
+                                                                    <span class="field-label">Size (GiB)</span>
+                                                                </label>
+                                                                <span class="hz-icon-required fa fa-asterisk"></span>
+                                                                <div class="input-group themable-spinner spinner-initialized">
+                                                                    <input type="number" name="volume_size" value="1" autocomplete="off" required class="form-control" min="1">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group required">
+                                                                <label class="control-label" for="host_ip">
+                                                                    <span class="field-label">Host IP Address</span>
+                                                                    <span class="hz-icon-required fa fa-asterisk"></span>
+                                                                </label>
+                                                                <input type="text" name="host_ip" class="form-control">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="control-label" for="id_name">
+                                                                  <span class="field-label">Volume Name (optional)</span>
+                                                                </label>
+                                                                <input type="text" name="volume_name" class="form-control" maxlength="255" placeholder="<Hostname>_<volume_type>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <div class="custom-control custom-switch">
+                                                                    <input type="checkbox" class="custom-control-input" id="lock_volume_atm" name="lock_volume_atm" checked="checked">
+                                                                    <label class= "custom-control-label" for="lock_volume_atm"> Lock volume after attached successfully</label>
+                                                            </div>
+                                                        </fieldset>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                        <button class="btn btn-primary" type="submit">Create Volume</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Size</th>
+                                            <th>Type</th>
+                                            <th>Attached To</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for v in volumes %}
+                                            <tr id="volume_row_{{ v.id }}">
+                                                <td></td>
+                                                <td>{{ v.name }}</td>
+                                                <td id="status_{{ v.id }}" value="{{ v.status }}">
+                                                    {% if 'ing' in v.status %}
+                                                        <div class="progress">
+                                                            <div class="progress-bar progress-bar-striped progress-bar-animated active" style="width: 100%"></div>
+                                                        </div>
+                                                    {% endif %}
+                                                    {{ v.status }}
+                                                </td>
+                                                <td id="size_{{ v.id }}" value="{{ v.size }}">{{ v.size }}GiB</td>
+                                                <td>{{ v.volume_type }}</td>
+                                                <td id="hostlist_{{ v.id }}" data-multiattach='{{ v.multiattach|tojson }}'>{{ v.host_list_string }}</td>
+                                                <td>
+                                                    <div class="btn-group" id="btg_{{ v.id }}">
+                                                        <button data-id='{{ v|tojson }}' data-toggle="modal" type="button" class="data-table-action btn-sm btn btn-default" data-target="#edit_modal">Edit Volume</button>
+                                                        <button type="button" class="data-table-action btn-sm btn btn-default dropdown-toggle dropdown-toggle-split" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">
+                                                            <span class="sr-only">Toggle Dropdown</span>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-right row_actions" id="dropdown_menu">
+                                                            <button id="bt_attach_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#attach_modal" type="button" class="dropdown-item btn-sm btn">Attach</button>
+                                                            <button id="bt_detach_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#detach_modal" type="button" class="dropdown-item btn-sm btn">Detach</button>
+                                                            <button id="bt_lock_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#lock_modal" type="button" class="dropdown-item btn-sm btn">Lock Volume</button>
+                                                            <button id="bt_extend_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#extend_modal" type="button" class="dropdown-item btn-sm btn">Extend Volume</button>
+                                                            <button id="bt_reset-status_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#reset-status_modal" type="button" class="dropdown-item btn-sm btn">Reset Status</button>
+                                                            <button id="bt_delete_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#delete_modal" type="button" class="dropdown-item btn-sm btn-danger btn" style="color:red;">Delete Volume</button>
+                                                        </div>
+                                                    </div>
+                                                    <button id="bt_unlock_{{ v.id }}" data-id='{{ v|tojson }}' data-toggle="modal" data-target="#unlock_modal" type="button" class="data-table-action btn-sm btn-danger btn" style="display: none;">Unlock Volume</button>
+                                                    <div class="modal fade" id="lock_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content ui-draggable">
+                                                                <div class="modal-header ui-draggable-handle">
+                                                                    <h4 class="modal-title">Confirm Lock Volume</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div id= "lock_modal_body" class="modal-body"></div>
+                                                                <div class="modal-footer">
+                                                                    <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                    <form action="/reset-status-volume" method="post">
+                                                                        <input id="lock_volume_status" type="hidden" name="new_status" value="locked">
+                                                                        <input id="lock_volume_id" type="hidden" name="volume_id">
+                                                                        <button class="btn btn-danger" type="submit">Lock Volume</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="unlock_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content ui-draggable">
+                                                                <div class="modal-header ui-draggable-handle">
+                                                                    <h4 class="modal-title">Confirm Unlock Volume</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div id= "unlock_modal_body" class="modal-body"></div>
+                                                                <div class="modal-footer">
+                                                                    <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                    <form action="/reset-status-volume" method="post">
+                                                                        <input id="unlock_volume_status" type="hidden" name="new_status">
+                                                                        <input id="unlock_volume_id" type="hidden" name="volume_id">
+                                                                        <button class="btn btn-danger" type="submit">Unlock Volume</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="delete_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content ui-draggable">
+                                                                <div class="modal-header ui-draggable-handle">
+                                                                    <h4 class="modal-title">Confirm Delete</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div id= "delete_modal_body" class="modal-body"></div>
+                                                                <div class="modal-footer">
+                                                                    <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                    <form action="/delete-volume" method="post">
+                                                                        <input id="delete_volume_id" type="hidden" name="volume_id">
+                                                                        <button class="btn btn-danger" type="submit">Delete Volume</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="attach_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h3 class="modal-title">Attach Volume</h3>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form id="attach-form" method="post" action="/attach-volume">
+                                                                    <input type="hidden" name="volume_id" id="attach_volume_id">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <div class="form-group">
+                                                                                <div class="custom-control custom-switch">
+                                                                                    <input type="checkbox" class="custom-control-input" id="lock_volume_at" name="lock_volume_at" checked="checked">
+                                                                                    <label class= "custom-control-label" for="lock_volume_at"> Lock volume after attached successfully</label>
+                                                                            </div>
+                                                                            <div class="form-group required">
+                                                                                <label class="control-label" for="host_ip">
+                                                                                    <span class="field-label">Host IP Address</span>
+                                                                                    <span class="hz-icon-required fa fa-asterisk"></span>
+                                                                                </label>
+                                                                                <input type="text" name="host_ip" id="host_ip" class="form-control" maxlength="255">
+                                                                            </div>
+                                                                        </fieldset>
+                                                                        <a id="label_host_info" style="visibility: hidden">
+                                                                            <h4>Host info from DCIM</h4>
+                                                                            <p id="host_info"></p>
+                                                                        </a>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button id="button-find_host" class="btn btn-primary button-next" type="button">Find Host&nbsp;</button>
+                                                                        <button id="button-attach" class="btn btn-success" type="submit" style="visibility: hidden">Attach</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="detach_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Confirm Detach Volume</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/detach-volume" method="post">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <div class="from-group">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Select host to detach</span>
+                                                                                </label>
+                                                                                <select class="custom-select" name="attachment_id" id="delete_attachment_select"></select>
+                                                                            </div>
+                                                                            <input type="hidden" name="volume_id" id="detach_volume_id">
+                                                                        </fieldset>
+                                                                        <br>
+                                                                        <p id="delete_attachment_hostname"></p>
+                                                                        <p id="delete_attachment_ip"></p>
+                                                                        <p id="delete_attachment_id"></p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-danger" type="submit">Detach Volume</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="reset-status_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Reset Status Volume</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/reset-status-volume" method="post">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <div class="from-group">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Select new status</span>
+                                                                                </label>
+                                                                                <select class="custom-select" name="new_status">
+                                                                                    {% for status in ['available', 'error', 'in-use'] %}
+                                                                                        <option>{{ status }}</option>
+                                                                                    {% endfor %}
+                                                                                </select>
+                                                                            </div>
+                                                                        </fieldset>
+                                                                        <input type="hidden" name="volume_id" id="reset_volume_id">
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-primary" type="submit">Reset</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="edit_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Edit Volume</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/edit-volume" method="post">
+                                                                    <div class="modal-body">
+                                                                        <input type="hidden" name="volume_id" id="edit_volume_id">
+                                                                        <fieldset>
+                                                                            <div class="form-group">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">Volume Name</span>
+                                                                                </label>
+                                                                                <input type="text" name="new_volume_name" class="form-control" maxlength="255" id="edit_volume_name">
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-primary" type="submit">Edit</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal fade" id="extend_modal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Extend Volume</h4>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <form action="/extend-volume" method="post">
+                                                                    <div class="modal-body">
+                                                                        <fieldset>
+                                                                            <input type="hidden" name="volume_id" id="extend_volume_id">
+                                                                            <div class="from-group required">
+                                                                                <label class="control-label">
+                                                                                    <span class="field-label">New Size (GiB)</span>
+                                                                                </label>
+                                                                                <span class="hz-icon-required fa fa-asterisk"></span>
+                                                                                <div class="input-group themable-spinner spinner-initialized">
+                                                                                    <input type="number" name="new_volume_size" autocomplete="off" required class="form-control" id="extend_volume_size">
+                                                                                </div>
+                                                                            </div>
+                                                                        </fieldset>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <a href="#" class="btn btn-default cancel" data-dismiss="modal">Cancel</a>
+                                                                        <button class="btn btn-primary" type="submit">Extend Volume</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th></th>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Size</th>
+                                            <th>Type</th>
+                                            <th>Attached To</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        <!-- /.card -->
+                        </div>
+                    <!-- /.col -->
+                    </div>
+                <!-- /.row -->
+                </div>
+            <!-- /.container-fluid -->
+            </div>
+            <!-- /.content -->
+            </section>
+    <!-- /.content-wrapper -->
+    </div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <!-- jQuery -->
+    <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables & Plugins -->
+    <script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/jszip/jszip.min.js"></script>
+    <script src="/static/assets/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="/static/assets/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="/static/assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="/static/assets/plugins/datatables-select/js/dataTables.select.min.js"></script>
+    <script src="/static/assets/plugins/datatables-select/js/select.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-colreorder/js/colReorder.bootstrap4.min.js"></script>
+    <script src="/static/assets/plugins/datatables-colreorder/js/dataTables.colReorder.min.js"></script>
+    <script src="/static/assets/plugins/toastr/toastr.min.js"></script>
+    <script src="/static/assets/plugins/select2/js/select2.min.js"></script>
+    <!-- <script src="/static/assets/plugins/select2/js/select2.min.js"></script> -->
+    <!-- AdminLTE App -->
+    <script src="/static/assets/js/adminlte.min.js"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="/static/assets/js/demo.js"></script>
+    <!-- Page specific script -->
+    <script>
+        $(function () {
+            $('.select2').select2();
+            var currentURL = window.location;
+            $('a[href="'+ currentURL.pathname +'"]').attr('class', 'nav-link active');
+            var table = $('#volume_table').DataTable({
+                "responsive": true,
+                "paging": true,
+                "lengthChange": true,
+                "autoWidth": false,
+                "colReorder": true,
+                "buttons": ["excel", "colvis"],
+                "select": {"style": "multi", "selector": "td:first-child"},
+                "columnDefs": [{"orderable": true, "className": "select-checkbox", "targets": 0}],
+                "drawCallback": function(settings) {
+                    function update_button(volumeID) {
+                        let status = $('#status_' + volumeID).attr("value");
+                        let multiattach = $('#hostlist_' + volumeID).data('multiattach');
+                        let hosts = $('#hostlist_' + volumeID).text();
+                        if (status == 'locked') {
+                            $('#btg_' + volumeID).attr('style', 'display: none');
+                            $('#bt_unlock_' + volumeID).attr('style', 'display: block')
+                        } else {
+                            $('#bt_unlock_' + volumeID).attr('style', 'display: none')
+                        }
+                        if (( !multiattach && status != 'available') || ( multiattach && status != 'in-use' && status != 'available')) {
+                            $('#bt_attach_' + volumeID).attr("disabled", "disabled");
+                        } else {
+                            $('#bt_attach_' + volumeID).removeAttr("disabled");
+                        };
+                        if (!hosts) {
+                            $('#bt_detach_' + volumeID).attr("disabled", "disabled");
+                        } else {
+                            $('#bt_detach_' + volumeID).removeAttr("disabled");
+                        };
+                        if (status != 'available' && status != 'in-use') {
+                            $('#bt_extend_' + volumeID).attr("disabled", "disabled");
+                        } else {
+                            $('#bt_extend_' + volumeID).removeAttr("disabled");
+                        };
+                        if (status != 'available' && status != 'error') {
+                            $('#bt_delete_' + volumeID).attr("disabled", "disabled");
+                        } else {
+                            $('#bt_delete_' + volumeID).removeAttr("disabled");
+                        };
+                        if (status == 'deleted') {
+                            $('#btg_' + volumeID).attr('style', 'visibility: hidden');
+                        }
+                    };
+                    $('tr[id^="volume_row_"]').each(function() {
+                        let volumeID = $(this).attr("id").replace("volume_row_", "");
+                        update_button(volumeID);
+                    });
+                    function update() {
+                        $('td[id^="status_"][value$="ing"]').each(function() {
+                            let volumeID = $(this).attr("id").replace("status_", "");
+                            $.ajax({
+                                type: "POST",
+                                cache: true,
+                                url: "/get-volume-by-id",
+                                data: {volume_id: volumeID},
+                                success: function(data) {
+                                    let response = JSON.parse(data);
+                                    if (response.status == "SUCCESS") {
+                                        let volumeInfo = response.msg;
+                                        let volumeStatus = volumeInfo.status;
+                                        let volumeSize = volumeInfo.size;
+                                        $('td[id="status_' + volumeID + '"]').attr("value", volumeStatus);
+                                        if (volumeStatus.includes("ing") || volumeStatus == 'reserved') {
+                                            console.log(volumeStatus)
+                                            $('td[id="status_' + volumeID + '"]').html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated active' style='width: 100%'></div></div>" + volumeStatus);
+                                        } else {
+                                            $('td[id="status_' + volumeID + '"]').text(volumeStatus);
+                                        }
+                                        $('td[id="size_' + volumeID + '"]').text(volumeSize + 'GiB');
+                                        update_button(volumeID);
+                                    } else if (response.status == "FAILED") {
+                                        $('td[id="status_' + volumeID + '"]').attr("value", "deleted");
+                                        $('td[id="status_' + volumeID + '"]').text("deleted");
+                                        update_button(volumeID);
+                                    };
+                                },
+                            });
+                        });
+                    };
+                    setInterval(update, 5000);
+                }
+            });
+            table.button().container().appendTo('#volume_table_wrapper .col-md-6:eq(0)');
+            table.on("show.bs.modal", '#lock_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeName = volume.name;
+                let volumeID = volume.id;
+                let attachments = volume.attachments
+                $('#lock_modal_body').html("<a>Locking Volume <b>" + volumeName + "</b>. Please confirm your selection. Locked volumes will not be able to modify until they are unlocked.</a>");
+                $('#lock_volume_id').val(volumeID);
+            });
+            table.on("show.bs.modal", '#unlock_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeName = volume.name;
+                let volumeID = volume.id;
+                let attachments = volume.attachments
+                $('#unlock_modal_body').html("<a>Volume <b>" + volumeName + "</b> has been locked for a reason! Please confirm your selection to unlock.</a>");
+                $('#unlock_volume_id').val(volumeID);
+                if (attachments.length != 0) {
+                    $('#unlock_volume_status').val('in-use')
+                } else {
+                    $('#unlock_volume_status').val('available')
+                }
+            });
+            table.on("show.bs.modal", '#delete_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeName = volume.name;
+                let volumeID = volume.id;
+                $('#delete_modal_body').html("<a>Deleting volume <b>" + volumeName + "</b>. Please confirm your selection. Deleted volumes are not recoverable. All data stored in the volume will be removed.</a>");
+                $('#delete_volume_id').val(volumeID);
+            });
+            table.on("show.bs.modal", '#attach_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeID = volume.id;
+                $('#attach_volume_id').val(volumeID);
+            });
+            table.on("click", '#button-find_host', function(e) {
+                e.preventDefault();
+                let hostIP = $('#host_ip').val()
+                $.ajax({
+                    type: "POST",
+                    url: "/get-host",
+                    data: {host_ip: hostIP},
+                    success: function(data) {
+                        let response = JSON.parse(data);
+                        if (response.status == "SUCCESS") {
+                            let hostInfo = response.msg;
+                            $('#host_info').html($("<p>Host name: <b>" + hostInfo.host + "</b></p> <p>WWPN: " + hostInfo.wwpns + "</p>"));
+                            toastr.success(hostIP, "Successfully find a host with IP");
+                            $('#label_host_info').attr('style', 'display: block');
+                            $('#button-attach').attr('style', 'display: block');
+                        } else if (response.status == "FAILED") {
+                            toastr.error(hostIP, "Fail to find a host with IP");
+                            $('#label_host_info').attr('style', 'visibility: hidden');
+                            $('#button-attach').attr('style', 'visibility: hidden');
+                        };
+                    },
+                })
+            });
+            table.on("show.bs.modal", '#detach_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeID = volume.id;
+                let attachments = volume.attachments;
+                for (atm in attachments) {
+                    $('#delete_attachment_select').append($('<option>', {
+                        value: attachments[atm].attachment_id,
+                        text: attachments[atm].host_name,
+                        'data-hostname': attachments[atm].host_name,
+                        'data-ip': attachments[atm].device,
+                    }));
+                };
+                $('#delete_attachment_select').change(function() {
+                    var selected = $(this).find(':selected');
+                    $('#delete_attachment_hostname').html('<b>Hostname: </b>' + selected.data('hostname'));
+                    $('#delete_attachment_ip').html('<b>IP: </b>' + selected.data('ip'));
+                    $('#delete_attachment_id').html('<b>Attachment_ID: </b>' + selected.val());
+                }).trigger('change');
+                $('#delete_volume_id').val(volumeID);
+            });
+            table.on("hide.bs.modal", '#detach_modal', function() {
+                $("#delete_attachment_select").html("");
+            });
+            table.on("show.bs.modal", '#reset-status_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeID = volume.id;
+                $('#reset_volume_id').val(volumeID);
+            });
+            table.on("show.bs.modal", '#extend_modal', function(e) {
+                let button = $(e.relatedTarget);
+                let volume = button.data("id");
+                let volumeID = volume.id;
+                let volumeSize = volume.size;
+                $('#extend_volume_size').attr({
+                    min: volumeSize,
+                    value: volumeSize
+                });
+                $('#extend_volume_id').val(volumeID);
+            });
+            table.on("show.bs.modal", '#edit_modal', function(e){
+                let button = $(e.relatedTarget);
+                let volume= button.data("id");
+                let volumeID = volume.id;
+                let volumeName = volume.name;
+                $('#edit_volume_name').val(volumeName);
+                $('#edit_volume_id').val(volumeID);
+            });
+        })
+    </script>
+{% endblock javascripts %}
